@@ -34,9 +34,15 @@
                             <td>{{ $transportadora->uf }}</td>
                             <td>
                                 <div class="btn-group">
-                                    <x-adminlte-button icon="fas fa-eye" theme="secondary" size="sm" href="{{ route('admin.transportadoras.show', $transportadora->id) }}" />
-                                    <x-adminlte-button icon="fas fa-edit" theme="primary" size="sm" href="{{ route('admin.transportadoras.edit', $transportadora->id) }}" />
-                                    <x-adminlte-button icon="fas fa-trash" theme="danger" size="sm" href="{{ route('admin.transportadoras.destroy', $transportadora->id) }}" />
+                                    <a href="{{ route('admin.transportadoras.show', $transportadora->id) }}" class="btn btn-secondary btn-sm px-2 py-1">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ route('admin.transportadoras.edit', $transportadora->id) }}" class="btn btn-primary btn-sm px-2 py-1">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{{ route('admin.transportadoras.destroy', $transportadora->id) }}" class="btn btn-danger btn-sm px-2 py-1">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
                                 </div>
                             </td>
                         </tr>

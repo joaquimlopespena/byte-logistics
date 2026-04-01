@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Transportadora\StoreTransportadoraRequest;
+use App\Http\Requests\Transportadora\UpdateTransportadoraRequest;
 use App\Models\Transportadora;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -42,9 +43,9 @@ class TransportadoraController extends Controller
         return redirect()->route('admin.transportadoras.index')->with('success', 'Transportadora cadastrada com sucesso');
     }
 
-    public function show($id)
+    public function show(Transportadora $transportadora)
     {
-        return view('admin.transportadoras.show');
+        return view('admin.transportadoras.show', compact('transportadora'));
     }
 
     public function edit($id)
@@ -54,8 +55,22 @@ class TransportadoraController extends Controller
         return view('admin.transportadoras.edit', compact('transportadora'));
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateTransportadoraRequest $request, Transportadora $transportadora)
     {
+        $validated = $request->validated();
+        DB::transaction(function () use ($validated, $transportadora) {
+            $transportadora->update([
+                'nome' => $validated['nome'],
+                'cnpj' => $validated['cnpj'],
+                'cep' => $validated['cep'],
+                'logradouro' => $validated['logradouro'],
+                'numero' => $validated['numero'],
+                'complemento' => $validated['complemento'],
+                'bairro' => $validated['bairro'],
+                'cidade' => $validated['cidade'],
+                'uf' => $validated['uf'],
+            ]);
+        });
         return redirect()->route('admin.transportadoras.index');
     }
 
