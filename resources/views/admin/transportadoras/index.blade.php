@@ -27,22 +27,26 @@
                 <tbody>
                     @foreach ($transportadoras as $transportadora)
                         <tr>
-                            <td>{{ $transportadora->nome }}</td>
-                            <td>{{ $transportadora->cnpj }}</td>
-                            <td>{{ $transportadora->bairro }}</td>
-                            <td>{{ $transportadora->cidade }}</td>
-                            <td>{{ $transportadora->uf }}</td>
+                            <td><span class="text-monospace">{{ $transportadora->nome }}</span></td>
+                            <td><span class="text-monospace">{{ $transportadora->cnpj_formatado }}</span></td>
+                            <td><span class="text-monospace">{{ $transportadora->bairro }}</span></td>
+                            <td><span class="text-monospace">{{ $transportadora->cidade }}</span></td>
+                            <td><span class="text-monospace">{{ $transportadora->uf }}</span></td>
                             <td>
-                                <div class="btn-group">
+                                <div class="d-flex justify-content-between">
                                     <a href="{{ route('admin.transportadoras.show', $transportadora->id) }}" class="btn btn-secondary btn-sm px-2 py-1">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <a href="{{ route('admin.transportadoras.edit', $transportadora->id) }}" class="btn btn-primary btn-sm px-2 py-1">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <a href="{{ route('admin.transportadoras.destroy', $transportadora->id) }}" class="btn btn-danger btn-sm px-2 py-1">
-                                        <i class="fas fa-trash"></i>
-                                    </a>
+                                    <form action="{{ route('admin.transportadoras.destroy', $transportadora->id) }}" method="post">
+                                        @csrf
+                                        @method('delete')
+                                        <button type="submit" class="btn btn-danger btn-sm px-2 py-1" onclick="return confirm('Tem certeza que deseja deletar esta transportadora?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>

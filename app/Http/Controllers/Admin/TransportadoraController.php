@@ -74,8 +74,11 @@ class TransportadoraController extends Controller
         return redirect()->route('admin.transportadoras.index');
     }
 
-    public function destroy($id)
+    public function destroy(Transportadora $transportadora)
     {
-        return redirect()->route('admin.transportadoras.index');
+        DB::transaction(function () use ($transportadora) {
+            $transportadora->delete();
+        });
+        return redirect()->route('admin.transportadoras.index')->with('success', 'Transportadora deletada com sucesso');
     }
 }
