@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Transportadora\StoreTransportadoraRequest;
 use App\Models\Transportadora;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class TransportadoraController extends Controller
 {
@@ -20,9 +22,24 @@ class TransportadoraController extends Controller
         return view('admin.transportadoras.create');
     }
 
-    public function store(Request $request)
+    public function store(StoreTransportadoraRequest $request)
     {
-        return redirect()->route('admin.transportadoras.index');
+        $validated = $request->validated();
+        DB::transaction(function () use ($validated) {
+            Transportadora::create([
+                'nome' => $validated['nome'],
+                'cnpj' => $validated['cnpj'],
+                'cep' => $validated['cep'],
+                'logradouro' => $validated['logradouro'],
+                'numero' => $validated['numero'],
+                'complemento' => $validated['complemento'],
+                'bairro' => $validated['bairro'],
+                'cidade' => $validated['cidade'],
+                'uf' => $validated['uf'],
+            ]);
+        });
+
+        return redirect()->route('admin.transportadoras.index')->with('success', 'Transportadora cadastrada com sucesso');
     }
 
     public function show($id)

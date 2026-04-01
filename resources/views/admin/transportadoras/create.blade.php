@@ -10,7 +10,13 @@
             <form action="{{ route('admin.transportadoras.store') }}" class="form" method="post">
                 @csrf
                 @include('admin.transportadoras.include.form')
-                <x-adminlte-button type="submit" label="Salvar" theme="success" icon="fas fa-save" />
+
+                <div class="d-flex justify-content-end">
+                    <a href="{{ route('admin.transportadoras.index') }}" class="btn btn-default btn-sm mr-2 p-2">
+                        <i class="fas fa-arrow-left mr-1"></i> Voltar
+                    </a>
+                    <x-adminlte-button type="submit" label="Salvar" theme="success" icon="fas fa-save" />
+                </div>
             </form>
         </x-adminlte-card>
    </div>
