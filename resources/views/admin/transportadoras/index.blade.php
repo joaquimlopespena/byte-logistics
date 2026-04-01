@@ -1,8 +1,11 @@
 @extends('adminlte::page')
 
 @section('title', 'Transportadoras')
-
 @section('content_header')
+@stop
+
+@section('content')
+<div class="pt-3">
     <x-adminlte-card title="Transportadoras" icon="fas fa-truck" theme="light">
         <x-slot name="toolsSlot">
             <a href="{{ route('admin.transportadoras.create') }}" class="btn btn-success btn-sm mr-2">
@@ -40,12 +43,10 @@
                     @endforeach
                 </tbody>
             </table>
+            <div class="d-flex justify-content-center mt-3">
+                {{ $transportadoras->links() }}
+            </div>
         </div>
     </x-adminlte-card>
-@stop
-
-@section('content')
-    <div class="row">
-
-    </div>
+</div>
 @stop

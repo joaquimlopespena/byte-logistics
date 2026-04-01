@@ -11,6 +11,7 @@ class TransportadoraController extends Controller
     public function index()
     {
         $transportadoras = Transportadora::paginate(10);
+
         return view('admin.transportadoras.index', compact('transportadoras'));
     }
 
@@ -31,7 +32,9 @@ class TransportadoraController extends Controller
 
     public function edit($id)
     {
-        return view('admin.transportadoras.edit');
+        $transportadora = Transportadora::findOrFail($id);
+
+        return view('admin.transportadoras.edit', compact('transportadora'));
     }
 
     public function update(Request $request, $id)
