@@ -311,12 +311,12 @@ return [
         ],
         [
             'text' => 'Pedidos',
-            'url' => 'pedidos',
+            'route' => 'admin.pedidos.index',
             'icon' => 'fas fa-fw fa-list',
         ],
         [
             'text' => 'Transportadoras',
-            'url' => 'transportadoras',
+            'route' => 'admin.transportadoras.index',
             'icon' => 'fas fa-fw fa-truck',
         ],
     ],
