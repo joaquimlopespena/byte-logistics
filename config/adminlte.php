@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'title' => 'AdminLTE 3',
+    'title' => 'Byte Logistics',
     'title_prefix' => '',
     'title_postfix' => '',
 
@@ -63,12 +63,13 @@ return [
     |
     */
 
-    'logo' => '<b>Admin</b>LTE',
-    'logo_img' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
-    'logo_img_class' => 'brand-image img-circle elevation-3',
+    'logo' => '<b>Byte</b> Logistics',
+    'logo_img' => 'image/icone.png',
+    'logo_img_class' => 'brand-image elevation-3',
     'logo_img_xl' => null,
     'logo_img_xl_class' => 'brand-image-xs',
-    'logo_img_alt' => 'Admin Logo',
+    'logo_img_alt' => 'Byte Logistics',
+    'classes_brand_text' => 'd-none',
 
     /*
     |--------------------------------------------------------------------------
@@ -84,13 +85,13 @@ return [
     */
 
     'auth_logo' => [
-        'enabled' => false,
+        'enabled' => true,
         'img' => [
-            'path' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
-            'alt' => 'Auth Logo',
-            'class' => '',
-            'width' => 50,
-            'height' => 50,
+            'path' => 'image/logo1.png',
+            'alt' => 'Byte Logistics',
+            'class' => 'img-fluid',
+            'width' => 260,
+            'height' => null,
         ],
     ],
 
@@ -113,11 +114,11 @@ return [
         'enabled' => true,
         'mode' => 'fullscreen',
         'img' => [
-            'path' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
-            'alt' => 'AdminLTE Preloader Image',
+            'path' => 'image/logo1.png',
+            'alt' => 'Byte Logistics',
             'effect' => 'animation__shake',
-            'width' => 60,
-            'height' => 60,
+            'width' => null,
+            'height' => null,
         ],
     ],
 
@@ -154,8 +155,8 @@ return [
 
     'layout_topnav' => null,
     'layout_boxed' => null,
-    'layout_fixed_sidebar' => null,
-    'layout_fixed_navbar' => null,
+    'layout_fixed_sidebar' => true,
+    'layout_fixed_navbar' => true,
     'layout_fixed_footer' => null,
     'layout_dark_mode' => null,
 
@@ -299,11 +300,6 @@ return [
     */
 
     'menu' => [
-        // Navbar items:
-        [
-            'type' => 'fullscreen-widget',
-            'topnav_right' => true,
-        ],
         [
             'text' => 'Dashboard',
             'url' => 'dashboard',
