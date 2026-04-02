@@ -7,7 +7,6 @@ use App\Http\Requests\Pedido\StorePedidoRequest;
 use App\Http\Requests\Pedido\UpdatePedidoRequest;
 use App\Models\Pedido;
 use App\Models\Transportadora;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class PedidoController extends Controller
@@ -42,9 +41,11 @@ class PedidoController extends Controller
         return redirect()->route('admin.pedidos.index');
     }
 
-    public function show($id)
+    public function show(Pedido $pedido)
     {
-        return view('admin.pedidos.show');
+        $pedido->load('transportadora');
+
+        return view('admin.pedidos.show', compact('pedido'));
     }
 
     public function edit(Pedido $pedido)
