@@ -4,7 +4,7 @@
             <x-adminlte-select name="transportadora_id" id="transportadora_id" label="Transportadora" placeholder="Transportadora" value="{{ old('transportadora_id', null) }}">
                 <option value="">Selecione</option>
                 @foreach($transportadoras as $transportadora)
-                    <option value="{{ $transportadora->id }}" {{ $pedido->transportadora_id == $transportadora->id ? 'selected' : '' }}>{{ $transportadora->nome }}</option>
+                    <option value="{{ $transportadora->id }}" {{ old('transportadora_id', $pedido->transportadora_id ?? null) == $transportadora->id ? 'selected' : '' }}>{{ $transportadora->nome }}</option>
                 @endforeach
             </x-adminlte-select>
         </div>
