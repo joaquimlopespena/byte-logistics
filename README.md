@@ -1,107 +1,101 @@
 # Byte Logistics
 
-Painel administrativo em **Laravel** para gestão de **pedidos** e **transportadoras** de uma loja de informática, com interface **AdminLTE** e autenticação via **Laravel Breeze**.
+Sistema web de **gestão de pedidos e logística** para uma loja de informática: painel administrativo autenticado, relacionamento pedidos ↔ transportadoras e indicadores no dashboard. Projeto pensado para **escala** (grandes volumes de pedidos) e para **evolução contínua** — não só um CRUD isolado.
 
-## Stack
+---
 
-| Tecnologia | Uso |
-|------------|-----|
-| PHP 8.3 | Runtime |
-| Laravel 13 | Framework web |
-| [Laravel AdminLTE](https://github.com/jeroennoten/Laravel-AdminLTE) | Layout do painel |
-| Laravel Breeze | Registro, login e perfil |
-| MySQL | Banco de dados (padrão no `.env.example`) |
-| Vite | Assets front-end |
+## Tecnologias
 
-Localização da aplicação: **pt_BR** (`lucascudo/laravel-pt-br-localization`).
+- **PHP 8.3** / **Laravel 13**
+- **MySQL** (configurável via `.env`)
+- **Laravel AdminLTE** — UI do painel (Bootstrap / AdminLTE)
+- **Laravel Breeze** — autenticação, registro e perfil
+- **Vite** — pipeline de assets
+- **Localização pt_BR** (`lucascudo/laravel-pt-br-localization`)
+
+---
 
 ## Funcionalidades
 
-- **Dashboard** — indicadores a partir dos dados reais: total de pedidos, total vendido (R$), pedidos do dia, ticket médio e quantidade de transportadoras; lista dos últimos pedidos.
-- **Pedidos** — CRUD com cliente, produto, descrição, preço, quantidade, total (calculado no formulário) e transportadora associada; máscaras e formato monetário em pt-BR.
-- **Transportadoras** — CRUD com nome, CNPJ e endereço; preenchimento de endereço a partir do **CEP** via [ViaCEP](https://viacep.com.br/).
+| Área | Estado |
+|------|--------|
+| Dashboard com métricas reais (totais, ticket médio, últimos pedidos) | Entregue |
+| CRUD de pedidos (validação dedicada, transações, máscaras pt-BR) | Entregue |
+| CRUD de transportadoras + endereço via **ViaCEP** | Entregue |
+| Busca por cliente na listagem de pedidos | UI pronta; filtro no controller em evolução |
+| Exportação CSV de todos os pedidos | Planeado (requisito de escala) |
+| API REST (listar / obter / criar pedidos) | Planeado |
 
-Rotas do painel (utilizador autenticado):
+**Rotas principais** (utilizador autenticado): `/dashboard`, `/admin/pedidos`, `/admin/transportadoras`.
 
-- `/dashboard`
-- `/admin/pedidos`
-- `/admin/transportadoras`
+---
 
-## Requisitos
+## Decisões técnicas
 
-- PHP **8.3+** com extensões usuais do Laravel (`openssl`, `pdo`, `mbstring`, `tokenizer`, `xml`, `ctype`, `json`, `bcmath`)
-- [Composer](https://getcomposer.org/)
-- [Node.js](https://nodejs.org/) e npm (para Vite)
-- MySQL (ou outro SGBD configurado no `.env`)
+Decisões explícitas no código e no schema, úteis para revisão em entrevista:
 
-## Instalação
+- **`foreignId` em `transportadora_id` com `nullOnDelete()`** — se uma transportadora for removida, pedidos associados não são apagados; o FK passa a `null`, evitando perda de histórico e violações de integridade.
+- **Índice composto `(cliente_nome, created_at)`** em `pedidos` — prepara listagens e **buscas por nome de cliente** ordenadas por recência sem varrer a tabela inteira à medida que o volume cresce.
+- **Índices em `created_at` e `deleted_at`** — suportam ordenação padrão da listagem e consultas com **soft deletes** sem full scan desnecessário.
+- **`FormRequest` por operação** (`Store` / `Update`) — validação e normalização de valores monetários centralizadas, alinhadas ao formato brasileiro antes da persistência.
+- **`DB::transaction` no create/update de pedidos** — base consistente caso a lógica de escrita ganhe efeitos colaterais (ex.: auditoria, stock) mais tarde.
+- **Soft deletes** em pedidos e transportadoras — recuperação e relatórios históricos sem eliminar registros de imediato.
+- **Plugin jQuery Mask via AdminLTE** — máscaras carregadas pela configuração do pacote (`JQueryMask` ativo), evitando scripts órfãos sem dependência.
 
-1. **Clonar o repositório** e entrar na pasta do projeto.
+---
 
-2. **Dependências e ambiente**
-
-   ```bash
-   composer install
-   cp .env.example .env
-   php artisan key:generate
-   ```
-
-3. **Base de dados** — criar a base (ex.: `byte_logistics`), preencher `DB_*` no `.env` e executar:
-
-   ```bash
-   php artisan migrate
-   ```
-
-   Opcional: utilizadores de teste com Breeze — `php artisan migrate` já inclui as tabelas necessárias; registe um utilizador em `/register` ou use seeders se existirem no projeto.
-
-4. **Assets**
-
-   ```bash
-   npm install
-   npm run build
-   ```
-
-   Em desenvolvimento: `npm run dev` (e noutro terminal `php artisan serve`).
-
-5. **Servidor**
-
-   ```bash
-   php artisan serve
-   ```
-
-   Aceda a `http://127.0.0.1:8000`, faça login e utilize o menu **Dashboard**, **Pedidos** e **Transportadoras**.
-
-### Script Composer (atalho)
-
-O projeto inclui um script que automatiza parte do setup:
+## Como executar
 
 ```bash
-composer run setup
+git clone <url-do-teu-repositório>
+cd byte-logistics
+
+composer install
+cp .env.example .env
+php artisan key:generate
+# Ajuste DB_* no .env e crie a base de dados
+
+php artisan migrate
+npm install && npm run build
+
+php artisan serve
 ```
 
-Garanta que o `.env` está com credenciais de base de dados válidas antes de correr as migrações.
+Registe um utilizador em `/register` (Breeze) e aceda ao painel. Atalho opcional: `composer run setup` (requer `.env` com DB válido).
 
-## Desenvolvimento
+**Desenvolvimento:** `npm run dev` + `php artisan serve` (ou `composer run dev` conforme `composer.json`).
 
-```bash
-composer run dev
-```
+**Testes:** `composer run test`
 
-Inicia em paralelo (quando configurado no `composer.json`): servidor PHP, fila, logs e Vite.
+---
 
-Testes:
+## Organização do código
 
-```bash
-composer run test
-```
-
-## Estrutura relevante
-
-- `app/Http/Controllers/Admin/` — Dashboard, Pedidos e Transportadoras  
-- `app/Http/Requests/Pedido/` — validação de criação e atualização de pedidos  
+- `app/Http/Controllers/Admin/` — dashboard, pedidos, transportadoras  
+- `app/Http/Requests/Pedido/` — regras de validação dos pedidos  
 - `resources/views/admin/` — views Blade do painel  
-- `config/adminlte.php` — título, menu e plugins (ex.: jQuery Mask)
+- `config/adminlte.php` — menu, tema e plugins (ex.: máscaras)
+
+---
+
+## Convenção de commits
+
+Histórico legível ajuda quem revisa o repositório:
+
+- `feat:` nova funcionalidade  
+- `fix:` correção  
+- `refactor:` / `chore:` / `docs:` conforme o caso  
+
+Evite mensagens vagas (`teste`, `ajuste`, `init` sem contexto). Prefira o **quê** e o **onde**, por exemplo: `feat(admin): export CSV de pedidos`.
+
+---
+
+## Status
+
+Projeto **em evolução ativa** (base sólida de domínio e persistência; próximos passos: busca no índice, CSV em lote, API e otimizações para milhões de linhas conforme o desafio).
+
+---
 
 ## Licença
 
-Este projeto é open-source sob a licença [MIT](https://opensource.org/licenses/MIT).
+MIT. Ver [opensource.org/licenses/MIT](https://opensource.org/licenses/MIT).
