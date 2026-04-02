@@ -423,7 +423,7 @@ return [
             ],
         ],
         'JQueryMask' => [
-            'active' => false,
+            'active' => true,
             'files' => [
                 [
                     'type' => 'js',

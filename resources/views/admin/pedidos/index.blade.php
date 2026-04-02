@@ -36,6 +36,7 @@
                         <th>ID</th>
                         <th>Cliente</th>
                         <th>Produto</th>
+                        <th>Transportadora</th>
                         <th>Qtd</th>
                         <th>Preço</th>
                         <th>Total</th>
@@ -48,6 +49,7 @@
                             <td>{{ $pedido->id }}</td>
                             <td>{{ $pedido->cliente_nome }}</td>
                             <td>{{ $pedido->produto }}</td>
+                            <td>{{ $pedido->transportadora->nome ?? '-' }}</td>
                             <td>{{ $pedido->quantidade }}</td>
                             <td>R$ {{ number_format($pedido->preco, 2, ',', '.') }}</td>
                             <td><strong>R$ {{ number_format($pedido->total, 2, ',', '.') }}</strong></td>

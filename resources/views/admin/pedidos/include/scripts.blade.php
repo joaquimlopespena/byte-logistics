@@ -1,29 +1,40 @@
 <script>
     $(function () {
-        $('#cnpj').mask('00.000.000/0000-00', { clearIfNotMatch: false });
-        $('#cep').mask('00000-000', { clearIfNotMatch: false });
+        $('#preco').mask("#.##0,00", {reverse: true});
+        $('#quantidade').mask('###0', { clearIfNotMatch: false });
 
-        $('#cep').on('blur', function () {
-            var cep = $(this).cleanVal();
-            if (cep.length !== 8) {
+        function parseBrDecimal(val) {
+            if (val == null || String(val).trim() === '') {
+                return NaN;
+            }
+            const normalized = String(val).replace(/\./g, '').replace(',', '.');
+            const n = parseFloat(normalized);
+            return Number.isFinite(n) ? n : NaN;
+        }
+
+        function parseQuantidade(val) {
+            if (val == null || String(val).trim() === '') {
+                return NaN;
+            }
+            const n = parseInt(String(val).replace(/\D/g, ''), 10);
+            return Number.isFinite(n) ? n : NaN;
+        }
+
+        function calcularTotal() {
+            const preco = parseBrDecimal($('#preco').val());
+            const quantidade = parseQuantidade($('#quantidade').val());
+            if (!Number.isFinite(preco) || !Number.isFinite(quantidade)) {
                 return;
             }
-            $.getJSON('https://viacep.com.br/ws/' + cep + '/json/', function (data) {
-                if (data.erro) {
-                    return;
-                }
-                $('#logradouro').val(data.logradouro || '');
-                $('#bairro').val(data.bairro || '');
-                $('#cidade').val(data.localidade || '');
-                $('#uf').val(data.uf || '');
-            });
-        });
+            $('#total').val((preco * quantidade).toFixed(2));
+            maskTotal();
+        }
 
-        $('form.form').on('submit', function () {
-            var $cnpj = $('#cnpj');
-            var $cep = $('#cep');
-            $cnpj.val($cnpj.cleanVal());
-            $cep.val($cep.cleanVal());
-        });
+        function maskTotal() {
+            $('#total').mask("#.##0,00", {reverse: true});
+        }
+
+        $('#preco').on('input', calcularTotal);
+        $('#quantidade').on('input', calcularTotal);
     });
 </script>

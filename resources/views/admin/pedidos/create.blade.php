@@ -19,21 +19,6 @@
 </div>
 
 @push('js')
-<script>
-    // Cálculo automático do total
-    const precoInput = document.getElementById('preco');
-    const qtdInput = document.getElementById('quantidade');
-    const totalDisplay = document.getElementById('total_display');
-    const totalHidden = document.getElementById('total_hidden');
-
-    function calcular() {
-        const total = (precoInput.value * qtdInput.value) || 0;
-        totalDisplay.value = total.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
-        totalHidden.value = total.toFixed(2);
-    }
-
-    precoInput.addEventListener('input', calcular);
-    qtdInput.addEventListener('input', calcular);
-</script>
+    @include('admin.pedidos.include.scripts')
 @endpush
 @stop
