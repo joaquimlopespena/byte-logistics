@@ -3,13 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Pedido;
 use Illuminate\Http\Request;
 
 class PedidoController extends Controller
 {
     public function index()
     {
-        return view('admin.pedidos.index');
+        $pedidos = Pedido::paginate(10);
+        return view('admin.pedidos.index', compact('pedidos'));
     }
 
     public function create()

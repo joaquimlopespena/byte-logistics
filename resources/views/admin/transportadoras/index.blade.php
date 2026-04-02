@@ -2,17 +2,30 @@
 
 @section('title', 'Transportadoras')
 @section('content_header')
+    <h1>Gerenciamento de Transportadoras</h1>
 @stop
 
 @section('content')
-<div class="pt-3">
-    <x-adminlte-card title="Transportadoras" icon="fas fa-truck" theme="light">
-        <x-slot name="toolsSlot">
-            <a href="{{ route('admin.transportadoras.create') }}" class="btn btn-success btn-sm mr-2">
-                <i class="fas fa-plus mr-1"></i> Cadastrar transportadora
-            </a>
-        </x-slot>
-        <div class="table-responsive p-0">
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Lista de Transportadoras</h3>
+            <div class="card-tools">
+                <a href="{{ route('admin.transportadoras.create') }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Nova Transportadora
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <form action="{{ route('admin.transportadoras.index') }}" method="GET" class="mb-3">
+                <div class="input-group input-group-sm" style="width: 300px;">
+                    <input type="text" name="search" class="form-control" placeholder="Buscar por cliente..." value="{{ request('search') }}">
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button>
+                    </div>
+                </div>
+            </form>
+
             <table class="table table-striped table-hover mb-0">
                 <thead>
                     <tr>
@@ -53,10 +66,10 @@
                     @endforeach
                 </tbody>
             </table>
-            <div class="d-flex justify-content-center mt-3">
-                {{ $transportadoras->links() }}
-            </div>
         </div>
-    </x-adminlte-card>
+        <div class="card-footer clearfix d-flex justify-content-center">
+            {{ $transportadoras->appends(['search' => request('search')])->links() }}
+        </div>
+    </div>
 </div>
 @stop
