@@ -47,7 +47,7 @@ Decisões explícitas no código e no schema, úteis para revisão em entrevista
 ## Como executar
 
 ```bash
-git clone <url-do-teu-repositório>
+git clone https://github.com/joaquimlopespena/byte-logistics
 cd byte-logistics
 
 composer install
