@@ -1,58 +1,107 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Byte Logistics
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Painel administrativo em **Laravel** para gestão de **pedidos** e **transportadoras** de uma loja de informática, com interface **AdminLTE** e autenticação via **Laravel Breeze**.
 
-## About Laravel
+## Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+| Tecnologia | Uso |
+|------------|-----|
+| PHP 8.3 | Runtime |
+| Laravel 13 | Framework web |
+| [Laravel AdminLTE](https://github.com/jeroennoten/Laravel-AdminLTE) | Layout do painel |
+| Laravel Breeze | Registro, login e perfil |
+| MySQL | Banco de dados (padrão no `.env.example`) |
+| Vite | Assets front-end |
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Localização da aplicação: **pt_BR** (`lucascudo/laravel-pt-br-localization`).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Funcionalidades
 
-## Learning Laravel
+- **Dashboard** — indicadores a partir dos dados reais: total de pedidos, total vendido (R$), pedidos do dia, ticket médio e quantidade de transportadoras; lista dos últimos pedidos.
+- **Pedidos** — CRUD com cliente, produto, descrição, preço, quantidade, total (calculado no formulário) e transportadora associada; máscaras e formato monetário em pt-BR.
+- **Transportadoras** — CRUD com nome, CNPJ e endereço; preenchimento de endereço a partir do **CEP** via [ViaCEP](https://viacep.com.br/).
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Rotas do painel (utilizador autenticado):
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- `/dashboard`
+- `/admin/pedidos`
+- `/admin/transportadoras`
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+## Requisitos
 
-## Agentic Development
+- PHP **8.3+** com extensões usuais do Laravel (`openssl`, `pdo`, `mbstring`, `tokenizer`, `xml`, `ctype`, `json`, `bcmath`)
+- [Composer](https://getcomposer.org/)
+- [Node.js](https://nodejs.org/) e npm (para Vite)
+- MySQL (ou outro SGBD configurado no `.env`)
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Instalação
+
+1. **Clonar o repositório** e entrar na pasta do projeto.
+
+2. **Dependências e ambiente**
+
+   ```bash
+   composer install
+   cp .env.example .env
+   php artisan key:generate
+   ```
+
+3. **Base de dados** — criar a base (ex.: `byte_logistics`), preencher `DB_*` no `.env` e executar:
+
+   ```bash
+   php artisan migrate
+   ```
+
+   Opcional: utilizadores de teste com Breeze — `php artisan migrate` já inclui as tabelas necessárias; registe um utilizador em `/register` ou use seeders se existirem no projeto.
+
+4. **Assets**
+
+   ```bash
+   npm install
+   npm run build
+   ```
+
+   Em desenvolvimento: `npm run dev` (e noutro terminal `php artisan serve`).
+
+5. **Servidor**
+
+   ```bash
+   php artisan serve
+   ```
+
+   Aceda a `http://127.0.0.1:8000`, faça login e utilize o menu **Dashboard**, **Pedidos** e **Transportadoras**.
+
+### Script Composer (atalho)
+
+O projeto inclui um script que automatiza parte do setup:
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer run setup
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Garanta que o `.env` está com credenciais de base de dados válidas antes de correr as migrações.
 
-## Contributing
+## Desenvolvimento
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+composer run dev
+```
 
-## Code of Conduct
+Inicia em paralelo (quando configurado no `composer.json`): servidor PHP, fila, logs e Vite.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Testes:
 
-## Security Vulnerabilities
+```bash
+composer run test
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Estrutura relevante
 
-## License
+- `app/Http/Controllers/Admin/` — Dashboard, Pedidos e Transportadoras  
+- `app/Http/Requests/Pedido/` — validação de criação e atualização de pedidos  
+- `resources/views/admin/` — views Blade do painel  
+- `config/adminlte.php` — título, menu e plugins (ex.: jQuery Mask)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Licença
+
+Este projeto é open-source sob a licença [MIT](https://opensource.org/licenses/MIT).
