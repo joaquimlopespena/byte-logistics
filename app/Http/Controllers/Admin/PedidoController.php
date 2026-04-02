@@ -7,13 +7,15 @@ use App\Http\Requests\Pedido\StorePedidoRequest;
 use App\Http\Requests\Pedido\UpdatePedidoRequest;
 use App\Models\Pedido;
 use App\Models\Transportadora;
+use App\Service\FiltroPedidoService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class PedidoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $pedidos = Pedido::orderBy('created_at', 'desc')->paginate(10);
+        $pedidos = (new FiltroPedidoService())->filtrarPedidos($request->all())->paginate(10);
         return view('admin.pedidos.index', compact('pedidos'));
     }
 

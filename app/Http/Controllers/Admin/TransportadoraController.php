@@ -6,14 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Transportadora\StoreTransportadoraRequest;
 use App\Http\Requests\Transportadora\UpdateTransportadoraRequest;
 use App\Models\Transportadora;
+use App\Service\FilterTransportadoraService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class TransportadoraController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $transportadoras = Transportadora::paginate(10);
+        $transportadoras = (new FilterTransportadoraService())->filtrarTransportadoras($request->all())->paginate(10);
 
         return view('admin.transportadoras.index', compact('transportadoras'));
     }
