@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Repositories\Contracts\PedidoRepositoryInterface;
+use App\Repositories\Contracts\TransportadoraRepositoryInterface;
+use App\Repositories\PedidoRepository;
+use App\Repositories\TransportadoraRepository;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 
@@ -12,7 +16,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(PedidoRepositoryInterface::class, PedidoRepository::class);
+        $this->app->bind(TransportadoraRepositoryInterface::class, TransportadoraRepository::class);
     }
 
     /**

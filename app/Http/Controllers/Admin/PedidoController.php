@@ -15,13 +15,15 @@ class PedidoController extends Controller
 {
     public function index(Request $request)
     {
-        $pedidos = (new FiltroPedidoService())->filtrarPedidos($request->all())->paginate(10);
+        $pedidos = (new FiltroPedidoService)->filtrarPedidos($request->all())->paginate(50);
+
         return view('admin.pedidos.index', compact('pedidos'));
     }
 
     public function create()
     {
         $transportadoras = Transportadora::all();
+
         return view('admin.pedidos.create', compact('transportadoras'));
     }
 
@@ -53,6 +55,7 @@ class PedidoController extends Controller
     public function edit(Pedido $pedido)
     {
         $transportadoras = Transportadora::all();
+
         return view('admin.pedidos.edit', compact('pedido', 'transportadoras'));
     }
 
@@ -70,6 +73,7 @@ class PedidoController extends Controller
                 'transportadora_id' => $validated['transportadora_id'],
             ]);
         });
+
         return redirect()->route('admin.pedidos.index');
     }
 
