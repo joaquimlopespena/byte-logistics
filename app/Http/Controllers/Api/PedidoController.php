@@ -4,12 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StorePedidoApiRequest;
-use App\Http\Resources\PedidoCollection;
 use App\Http\Resources\PedidoResource;
 use App\Service\PedidoApiService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Throwable;
 
 class PedidoController extends Controller
@@ -18,13 +18,13 @@ class PedidoController extends Controller
         private readonly PedidoApiService $pedidoApiService
     ) {}
 
-    public function index(Request $request): JsonResponse|PedidoCollection
+    public function index(Request $request): JsonResponse|AnonymousResourceCollection
     {
         try {
             $perPage = min(max((int) $request->query('per_page', 50), 1), 100);
             $paginator = $this->pedidoApiService->listarPaginado($perPage);
 
-            return new PedidoCollection($paginator);
+            return PedidoResource::collection($paginator);
         } catch (Throwable $e) {
             report($e);
 

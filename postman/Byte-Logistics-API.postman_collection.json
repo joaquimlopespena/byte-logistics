@@ -1,0 +1,119 @@
+{
+	"info": {
+		"name": "Byte Logistics API",
+		"description": "API REST do byte-logistics. Define `base_url` (ex.: http://127.0.0.1:8000/api) e os IDs nas variáveis da coleção.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000/api"
+		},
+		{
+			"key": "pedido_id",
+			"value": "1"
+		},
+		{
+			"key": "transportadora_id",
+			"value": "1"
+		}
+	],
+	"item": [
+		{
+			"name": "Pedidos",
+			"item": [
+				{
+					"name": "Listar pedidos (paginado)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": "{{base_url}}/pedidos?per_page=50"
+					}
+				},
+				{
+					"name": "Obter pedido por ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": "{{base_url}}/pedidos/{{pedido_id}}"
+					}
+				},
+				{
+					"name": "Criar pedido",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cliente_nome\": \"Cliente Exemplo\",\n  \"produto\": \"iPhone 15\",\n  \"descricao\": \"Pedido via API\",\n  \"preco\": 5499.90,\n  \"quantidade\": 1,\n  \"transportadora_id\": 1\n}"
+						},
+						"url": "{{base_url}}/pedidos"
+					}
+				}
+			]
+		},
+		{
+			"name": "Transportadoras",
+			"item": [
+				{
+					"name": "Listar transportadoras (paginado)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": "{{base_url}}/transportadoras?per_page=10"
+					}
+				},
+				{
+					"name": "Listar todas as transportadoras",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": "{{base_url}}/transportadoras/all"
+					}
+				},
+				{
+					"name": "Obter transportadora por ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": "{{base_url}}/transportadoras/{{transportadora_id}}"
+					}
+				}
+			]
+		}
+	]
+}

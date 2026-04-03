@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\TransportadoraCollection;
 use App\Http\Resources\TransportadoraResource;
 use App\Service\TransportadoraApiService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Throwable;
 
 class TransportadoraController extends Controller
@@ -17,13 +17,14 @@ class TransportadoraController extends Controller
         private readonly TransportadoraApiService $transportadoraApiService
     ) {}
 
-    public function index(Request $request): JsonResponse|TransportadoraCollection
+    public function index(Request $request): JsonResponse|AnonymousResourceCollection
     {
         try {
-            $perPage = min(max((int) $request->query('per_page', 50), 1), 100);
-            $paginator = $this->transportadoraApiService->listarPaginado($perPage);
+            $paginator = $this->transportadoraApiService->listarPaginado(
+                (int) $request->query('per_page', 10)
+            );
 
-            return new TransportadoraCollection($paginator);
+            return TransportadoraResource::collection($paginator);
         } catch (Throwable $e) {
             report($e);
 
@@ -54,12 +55,12 @@ class TransportadoraController extends Controller
         }
     }
 
-    public function all(): JsonResponse|TransportadoraCollection
+    public function all(): JsonResponse|AnonymousResourceCollection
     {
         try {
             $transportadoras = $this->transportadoraApiService->listarTodas();
 
-            return new TransportadoraCollection($transportadoras);
+            return TransportadoraResource::collection($transportadoras);
         } catch (Throwable $e) {
             report($e);
 
