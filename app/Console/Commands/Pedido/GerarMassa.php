@@ -3,14 +3,16 @@
 namespace App\Console\Commands\Pedido;
 
 use App\Models\Transportadora;
+use App\Models\User;
 use App\Service\DashboardStatsService;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-#[Signature('pedido:gerar_massa {--count=1000000 : Quantidade de pedidos a inserir} {--chunk=2000 : Linhas por INSERT (ajuste se o banco limitar o pacote)} {--force : Não pedir confirmação}')]
+#[Signature('pedido:gerar_massa {--count=1000000 : Quantidade de pedidos a inserir} {--chunk=2000 : Linhas por INSERT (ajuste se o banco limitar o pacote)} {--entre-dias=730 : Distribuir datas nos últimos N dias (0 = só hoje, do início do dia até agora)} {--force : Não pedir confirmação}')]
 #[Description('Insere pedidos em massa via INSERT em lotes (adequado para ~1M+ registros)')]
 class GerarMassa extends Command
 {
@@ -54,7 +56,15 @@ class GerarMassa extends Command
             $descPool[] = Str::limit($faker->sentence(), 500, '');
         }
 
-        $now = now()->format('Y-m-d H:i:s');
+        $entreDias = max(0, (int) $this->option('entre-dias'));
+        $endTs = now()->timestamp;
+        $startTs = $entreDias === 0
+            ? now()->startOfDay()->timestamp
+            : now()->subDays($entreDias)->timestamp;
+        if ($startTs > $endTs) {
+            [$startTs, $endTs] = [$endTs, $startTs];
+        }
+
         $transportadoraCount = count($transportadoraIds);
         $produtoCount = count($produtos);
         $nomeCount = count($nomePool);
@@ -75,6 +85,9 @@ class GerarMassa extends Command
                 ? $descPool[random_int(0, $descCount - 1)]
                 : null;
 
+            $ts = random_int($startTs, $endTs);
+            $at = Carbon::createFromTimestamp($ts)->format('Y-m-d H:i:s');
+
             $buffer[] = [
                 'descricao' => $descricao,
                 'cliente_nome' => $nomePool[random_int(0, $nomeCount - 1)],
@@ -83,9 +96,10 @@ class GerarMassa extends Command
                 'quantidade' => $quantidade,
                 'total' => $total,
                 'transportadora_id' => $transportadoraIds[random_int(0, $transportadoraCount - 1)],
-                'created_at' => $now,
-                'updated_at' => $now,
+                'created_at' => $at,
+                'updated_at' => $at,
                 'deleted_at' => null,
+                'user_id' => User::query()->value('id'),
             ];
 
             if (count($buffer) >= $chunkSize) {
@@ -105,7 +119,11 @@ class GerarMassa extends Command
         $bar->finish();
         $this->newLine(2);
         $this->components->info("Concluído: {$inserted} pedidos inseridos.");
-        DashboardStatsService::forgetCache();
+
+        if ($inserted > 0) {
+            DashboardStatsService::forgetCache();
+        }
+
         return self::SUCCESS;
     }
 

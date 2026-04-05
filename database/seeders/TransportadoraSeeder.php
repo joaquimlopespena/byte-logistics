@@ -14,7 +14,7 @@ class TransportadoraSeeder extends Seeder
     public function run(): void
     {
         Transportadora::factory()->count(10)->create([
-            'user_id' => fn () => User::factory()->create()->id,
+            'user_id' => fn () => User::first()->id,
         ]);
     }
 }

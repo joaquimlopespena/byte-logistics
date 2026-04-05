@@ -16,7 +16,7 @@ class PedidoSeeder extends Seeder
     {
         Pedido::factory()->count(5000)->create([
             'transportadora_id' => fn () => Transportadora::query()->inRandomOrder()->value('id'),
-            'user_id' => fn () => User::factory()->create()->id,
+            'user_id' => fn () => User::first()->id,
         ]);
     }
 }
