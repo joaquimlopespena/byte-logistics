@@ -77,8 +77,12 @@ class PedidoController extends Controller
         return redirect()->route('admin.pedidos.index');
     }
 
-    public function destroy($id)
+    public function destroy(Pedido $pedido)
     {
-        return redirect()->route('admin.pedidos.index');
+        DB::transaction(function () use ($pedido) {
+            $pedido->delete();
+        });
+
+        return redirect()->route('admin.pedidos.index')->with('success', 'Pedido excluído com sucesso.');
     }
 }

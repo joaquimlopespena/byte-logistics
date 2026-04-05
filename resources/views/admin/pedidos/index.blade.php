@@ -8,6 +8,14 @@
 
 @section('content')
 <div class="container-fluid">
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Fechar">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Lista de Pedidos</h3>
@@ -54,8 +62,17 @@
                             <td>R$ {{ number_format($pedido->preco, 2, ',', '.') }}</td>
                             <td><strong>R$ {{ number_format($pedido->total, 2, ',', '.') }}</strong></td>
                             <td>
-                                <a href="{{ route('admin.pedidos.show', $pedido->id) }}" class="btn btn-xs btn-info"><i class="fas fa-eye"></i></a>
-                                <a href="{{ route('admin.pedidos.edit', $pedido->id) }}" class="btn btn-xs btn-warning"><i class="fas fa-edit"></i></a>
+                                <div class="d-flex flex-wrap align-items-center" style="gap: 0.25rem;">
+                                    <a href="{{ route('admin.pedidos.show', $pedido) }}" class="btn btn-xs btn-info"><i class="fas fa-eye"></i></a>
+                                    <a href="{{ route('admin.pedidos.edit', $pedido) }}" class="btn btn-xs btn-warning"><i class="fas fa-edit"></i></a>
+                                    <form action="{{ route('admin.pedidos.destroy', $pedido) }}" method="post" class="d-inline">
+                                        @csrf
+                                        @method('delete')
+                                        <button type="submit" class="btn btn-xs btn-danger" onclick="return confirm('Excluir este pedido?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @endforeach

@@ -21,9 +21,18 @@
             <div class="col-lg-8">
                 <x-adminlte-card title="Dados do pedido" icon="fas fa-shopping-cart" theme="light">
                     <x-slot name="toolsSlot">
-                        <a href="{{ route('admin.pedidos.edit', $pedido) }}" class="btn btn-primary btn-sm">
-                            <i class="fas fa-edit mr-1"></i> Editar
-                        </a>
+                        <div class="d-flex flex-wrap align-items-center" style="gap: 0.35rem;">
+                            <a href="{{ route('admin.pedidos.edit', $pedido) }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-edit mr-1"></i> Editar
+                            </a>
+                            <form action="{{ route('admin.pedidos.destroy', $pedido) }}" method="post" class="d-inline">
+                                @csrf
+                                @method('delete')
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Excluir este pedido?')">
+                                    <i class="fas fa-trash mr-1"></i> Excluir
+                                </button>
+                            </form>
+                        </div>
                     </x-slot>
                     <div class="table-responsive">
                         <table class="table table-hover text-nowrap mb-0">
