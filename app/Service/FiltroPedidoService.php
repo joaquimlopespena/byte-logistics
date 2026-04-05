@@ -24,6 +24,8 @@ class FiltroPedidoService
                 ->orWhere('id', $data['search']);
         }
 
-        return $query->orderBy('created_at', 'desc');
+        return $query
+            ->orderBy('created_at', 'desc')
+            ->with('transportadora:id,nome');
     }
 }
