@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('pedidos', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->text('descricao')->nullable();
             $table->string('cliente_nome', 150);
             $table->string('produto', 150);
@@ -20,9 +21,9 @@ return new class extends Migration
             $table->unsignedInteger('quantidade');
             $table->decimal('total', 15, 2);
             $table->foreignId('transportadora_id')
-                  ->nullable()
-                  ->constrained('transportadoras')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('transportadoras')
+                ->nullOnDelete();
 
             $table->timestamps();
             $table->softDeletes();

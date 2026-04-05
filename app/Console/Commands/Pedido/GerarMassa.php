@@ -3,6 +3,7 @@
 namespace App\Console\Commands\Pedido;
 
 use App\Models\Transportadora;
+use App\Service\DashboardStatsService;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -104,7 +105,7 @@ class GerarMassa extends Command
         $bar->finish();
         $this->newLine(2);
         $this->components->info("Concluído: {$inserted} pedidos inseridos.");
-
+        DashboardStatsService::forgetCache();
         return self::SUCCESS;
     }
 

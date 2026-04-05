@@ -4,29 +4,31 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pedido;
-use App\Models\Transportadora;
+use App\Service\DashboardStatsService;
 use Illuminate\Support\Number;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(DashboardStatsService $dashboardStats)
     {
+        $raw = $dashboardStats->stats();
+
         $stats = [
-            'total_pedidos' => Pedido::count(),
-            'total_pedidos_label' => Number::format(Pedido::count(), locale: 'pt_BR'),
-            'total_vendido' => Pedido::sum('total'),
-            'total_vendido_label' => Number::currency(Pedido::sum('total'), 'BRL', 'pt_BR'),
-            'pedidos_hoje' => Pedido::whereDate('created_at', now()->today())->count(),
-            'ticket_medio' => Pedido::count() > 0 ? round(Pedido::sum('total') / Pedido::count(), 2) : 0.0,
-            'ticket_medio_label' => Number::currency(
-                Pedido::count() > 0 ? Pedido::sum('total') / Pedido::count() : 0,
-                'BRL',
-                'pt_BR'
-            ),
-            'transportadoras' => Transportadora::count(),
+            'total_pedidos' => $raw['total_pedidos'],
+            'total_pedidos_label' => Number::format($raw['total_pedidos'], locale: 'pt_BR'),
+            'total_vendido' => $raw['total_vendido'],
+            'total_vendido_label' => Number::currency($raw['total_vendido'], 'BRL', 'pt_BR'),
+            'pedidos_hoje' => $raw['pedidos_hoje'],
+            'ticket_medio' => round($raw['ticket_medio'], 2),
+            'ticket_medio_label' => Number::currency($raw['ticket_medio'], 'BRL', 'pt_BR'),
+            'transportadoras' => $raw['transportadoras'],
         ];
 
-        $recentOrders = Pedido::orderBy('created_at', 'desc')->take(5)->get();
+        $recentOrders = Pedido::query()
+            ->latest('created_at')
+            ->limit(5)
+            ->get(['cliente_nome', 'produto', 'total', 'created_at']);
+
         return view('admin.dashboard', compact('stats', 'recentOrders'));
     }
 }

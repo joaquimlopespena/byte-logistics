@@ -13,12 +13,13 @@ return new class extends Migration
     {
         Schema::create('transportadoras', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('nome', 150);
-            $table->string('cnpj', 14)->unique(); // CNPJ como índice único
+            $table->string('cnpj', 14)->unique();
             $table->string('cep', 8)->index();
             $table->string('logradouro', 250);
             $table->string('numero', 20);
-            $table->string('complemento')->nullable();
+            $table->string('complemento', 100)->nullable();
             $table->string('bairro', 100);
             $table->string('cidade', 100);
             $table->char('uf', 2)->index();

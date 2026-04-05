@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Pedido;
 use App\Models\PersonalAccessToken;
+use App\Observers\PedidoObserver;
 use App\Repositories\Contracts\PedidoRepositoryInterface;
 use App\Repositories\Contracts\TransportadoraRepositoryInterface;
 use App\Repositories\PedidoRepository;
@@ -27,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Pedido::observe(PedidoObserver::class);
         Paginator::useBootstrapFour();
 
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);

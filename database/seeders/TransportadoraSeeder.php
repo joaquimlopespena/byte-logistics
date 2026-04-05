@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Transportadora;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class TransportadoraSeeder extends Seeder
@@ -12,6 +13,8 @@ class TransportadoraSeeder extends Seeder
      */
     public function run(): void
     {
-        Transportadora::factory()->count(10)->create();
+        Transportadora::factory()->count(10)->create([
+            'user_id' => fn () => User::factory()->create()->id,
+        ]);
     }
 }
