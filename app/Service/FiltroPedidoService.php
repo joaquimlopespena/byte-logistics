@@ -20,7 +20,8 @@ class FiltroPedidoService
 
         if (isset($data['search'])) {
             $query->where('cliente_nome', 'like', '%' . $data['search'] . '%')
-                ->orWhere('produto', 'like', '%' . $data['search'] . '%');
+                ->orWhere('produto', 'like', '%' . $data['search'] . '%')
+                ->orWhere('id', $data['search']);
         }
 
         return $query->orderBy('created_at', 'desc');
