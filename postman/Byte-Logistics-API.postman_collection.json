@@ -1,13 +1,17 @@
 {
 	"info": {
 		"name": "Byte Logistics API",
-		"description": "API REST do byte-logistics. Define `base_url` (ex.: http://127.0.0.1:8000/api) e os IDs nas variáveis da coleção.",
+		"description": "API com Laravel Sanctum. 1) POST **Obter token** com email/password do utilizador. 2) Copia o `token` da resposta para a variável de coleção `token` (ou usa o script de teste). 3) Os outros pedidos enviam `Authorization: Bearer {{token}}`.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"variable": [
 		{
 			"key": "base_url",
 			"value": "http://127.0.0.1:8000/api"
+		},
+		{
+			"key": "token",
+			"value": ""
 		},
 		{
 			"key": "pedido_id",
@@ -20,11 +24,61 @@
 	],
 	"item": [
 		{
+			"name": "Autenticação (Sanctum)",
+			"item": [
+				{
+					"name": "Obter token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var json = pm.response.json();",
+									"if (json && json.token) {",
+									"    pm.collectionVariables.set('token', json.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@admin.com\",\n  \"password\": \"12345678\",\n  \"device_name\": \"Postman\"\n}"
+						},
+						"url": "{{base_url}}/sanctum/token"
+					}
+				}
+			]
+		},
+		{
 			"name": "Pedidos",
 			"item": [
 				{
 					"name": "Listar pedidos (paginado)",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [
 							{
@@ -38,6 +92,16 @@
 				{
 					"name": "Obter pedido por ID",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [
 							{
@@ -51,6 +115,16 @@
 				{
 					"name": "Criar pedido",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "POST",
 						"header": [
 							{
@@ -77,6 +151,16 @@
 				{
 					"name": "Listar transportadoras (paginado)",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [
 							{
@@ -90,6 +174,16 @@
 				{
 					"name": "Listar todas as transportadoras",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [
 							{
@@ -103,6 +197,16 @@
 				{
 					"name": "Obter transportadora por ID",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [
 							{
