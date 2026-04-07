@@ -328,6 +328,11 @@ return [
             'route' => 'admin.transportadoras.index',
             'icon' => 'fas fa-fw fa-truck',
         ],
+        [
+            'text' => 'Documentação',
+            'route' => 'admin.documentacao',
+            'icon' => 'fas fa-fw fa-book',
+        ],
     ],
 
     /*

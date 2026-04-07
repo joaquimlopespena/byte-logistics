@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DocumentacaoController;
 use App\Http\Controllers\Admin\PedidoController;
 use App\Http\Controllers\Admin\PedidoExportController;
 use App\Http\Controllers\Admin\TransportadoraController;
@@ -27,6 +28,7 @@ Route::middleware('auth')->group(function () {
         Route::get('pedidos/exportar/{pedidoExport}/baixar', [PedidoExportController::class, 'download'])->name('admin.pedidos.export.download');
         Route::resource('pedidos', PedidoController::class)->names('admin.pedidos');
         Route::resource('transportadoras', TransportadoraController::class)->names('admin.transportadoras');
+        Route::get('documentacao', [DocumentacaoController::class, 'index'])->name('admin.documentacao');
     });
 });
 
