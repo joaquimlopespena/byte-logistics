@@ -68,13 +68,13 @@ class PedidoExportController extends Controller
                 ->with('error', 'Arquivo não encontrado. Gere uma nova exportação.');
         }
 
-        $name = 'pedidos-'.$pedidoExport->id.'-'.now()->format('Y-m-d').'.xlsx';
+        $name = 'pedidos-'.$pedidoExport->id.'-'.now()->format('Y-m-d').'.csv';
         $disk = Storage::disk($pedidoExport->disk);
 
         return response()->download(
             $disk->path($pedidoExport->path),
             $name,
-            ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+            ['Content-Type' => 'text/csv; charset=UTF-8']
         )->deleteFileAfterSend(false);
     }
 }

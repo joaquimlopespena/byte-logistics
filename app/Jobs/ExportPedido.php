@@ -8,90 +8,106 @@ use App\Service\FiltroPedidoService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Storage;
-
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-
+use RuntimeException;
 use Throwable;
 
-/*
-* \App\Jobs\ExportPedido::dispatchSync(1,1);
-* @date: 2026-04-06
-* @description: Job para exportar pedidos em CSV
-*/
+/**
+ * Exporta pedidos em CSV por streaming (baixo uso de memória).
+ *
+ * - Cursor lazyById: lê a BD em blocos sem OFFSET caro nem carregar o dataset inteiro.
+ * - fputcsv direto em disco: evita PhpSpreadsheet (inviável para milhões de linhas).
+ * - Ficheiro .part + rename: evita download de export a meio da escrita.
+ *
+ * Ordenação: por id ascendente (requisito técnico para lazyById estável).
+ */
 class ExportPedido implements ShouldQueue
 {
     use Queueable;
 
     public int $timeout = 3600;
 
-    /**
-     * @param int $userId
-     * @param int $pedidoExportId
-     */
+    /** Tamanho do bloco de leitura na BD (ajustar conforme colunas / memória do worker). */
+    private const CHUNK_SIZE = 500;
+
+    /** Parâmetros explícitos para fputcsv (PHP 8.4+ deprecia omissão de $escape). */
+    private const CSV_SEPARATOR = ';';
+
+    private const CSV_ENCLOSURE = '"';
+
+    private const CSV_ESCAPE = '\\';
+
     public function __construct(
         protected int $userId,
         protected int $pedidoExportId
-    ) {}
+    ) {
+        $this->onQueue('default');
+        $this->onConnection('redis');
+    }
 
     public function handle(FiltroPedidoService $filtroPedidoService): void
     {
-        try {
-            $export = PedidoExport::find($this->pedidoExportId);
-            if ($export === null || (int) $export->user_id !== $this->userId) {
-                throw new \RuntimeException('Exportação inválida ou usuário não autorizado.');
-            }
-
-            $this->exportarPedidos($export, $filtroPedidoService);
-        } catch (\Exception $th) {
-            $this->failed($th);
+        $export = PedidoExport::query()->find($this->pedidoExportId);
+        if ($export === null || (int) $export->user_id !== $this->userId) {
+            throw new RuntimeException('Exportação inválida ou usuário não autorizado.');
         }
+
+        $this->exportarPedidos($export, $filtroPedidoService);
     }
 
     private function exportarPedidos(PedidoExport $export, FiltroPedidoService $filtroPedidoService): void
     {
+        $data = is_array($export->filters) ? $export->filters : [];
 
-        $data = !empty($export->filters) ? json_decode(json_encode($export->filters), true) : [];
-
-        $pedidos = (new FiltroPedidoService)->filtrarPedidos($data, $export->user_id)->limit(1)->get();
-
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet(); // ID	Cliente	Produto	Transportadora	Qtd	Preço		Data
-
-        $sheet->setCellValue('A1', 'ID');
-        $sheet->setCellValue('C1', 'Cliente');
-        $sheet->setCellValue('D1', 'Produto');
-        $sheet->setCellValue('E1', 'Transportadora');
-        $sheet->setCellValue('F1', 'Qtd');
-        $sheet->setCellValue('G1', 'Preço');
-        $sheet->setCellValue('H1', 'Total');
-        $sheet->setCellValue('I1', 'Data');
+        $query = $filtroPedidoService->aplicarFiltros(
+            Pedido::query()->withoutGlobalScope('user'),
+            $data,
+            $export->user_id
+        )
+            ->with(['transportadora:id,nome'])
+            ->orderBy('id');
 
         $export->update([
             'status' => PedidoExport::STATUS_PROCESSING,
             'error_message' => null,
         ]);
 
-        $rowIndex = 2;
-        foreach ($pedidos as $row) {
-            $sheet->setCellValue('A'.$rowIndex, $row->id);
-            $sheet->setCellValue('C'.$rowIndex, $row->cliente_nome);
-            $sheet->setCellValue('D'.$rowIndex, $row->produto);
-            $sheet->setCellValue('E'.$rowIndex, $row?->transportadora?->nome ?? '');
-            $sheet->setCellValue('F'.$rowIndex, $row->quantidade);
-            $sheet->setCellValue('G'.$rowIndex, (float) $row?->preco ?? 0);
-            $sheet->setCellValue('H'.$rowIndex, (float) $row?->total ?? 0);
-            $sheet->setCellValue('I'.$rowIndex, $row->created_at?->format('Y-m-d H:i:s') ?? '');
-            $rowIndex++;
-        }
-
-        $relativePath = 'exports/pedidos-'.$export->id.'.xlsx';
+        $relativePath = 'exports/pedidos-'.$export->id.'.csv';
         $disk = Storage::disk($export->disk);
         $disk->makeDirectory('exports');
 
         $fullPath = $disk->path($relativePath);
+        $tempPath = $fullPath.'.part';
 
-        (new Xlsx($spreadsheet))->save($fullPath);
+        $handle = fopen($tempPath, 'wb');
+        if ($handle === false) {
+            throw new RuntimeException('Não foi possível criar o arquivo de exportação.');
+        }
+
+        try {
+            fwrite($handle, "\xEF\xBB\xBF");
+            fputcsv($handle, [
+                'ID', 'Cliente', 'Produto', 'Transportadora', 'Qtd', 'Preço', 'Total', 'Data',
+            ], self::CSV_SEPARATOR, self::CSV_ENCLOSURE, self::CSV_ESCAPE);
+
+            foreach ($query->lazyById(self::CHUNK_SIZE, 'id') as $row) {
+                fputcsv($handle, [
+                    $row->id,
+                    $row->cliente_nome,
+                    $row->produto,
+                    $row->transportadora?->nome ?? '',
+                    $row->quantidade,
+                    $row->preco,
+                    $row->total,
+                    $row->created_at?->format('Y-m-d H:i:s') ?? '',
+                ], self::CSV_SEPARATOR, self::CSV_ENCLOSURE, self::CSV_ESCAPE);
+            }
+        } finally {
+            fclose($handle);
+        }
+
+        if (! rename($tempPath, $fullPath)) {
+            throw new RuntimeException('Não foi possível finalizar o arquivo de exportação.');
+        }
 
         $export->update([
             'status' => PedidoExport::STATUS_COMPLETED,
@@ -105,6 +121,11 @@ class ExportPedido implements ShouldQueue
         $export = PedidoExport::query()->find($this->pedidoExportId);
         if ($export === null) {
             return;
+        }
+
+        $partPath = Storage::disk($export->disk)->path('exports/pedidos-'.$export->id.'.csv.part');
+        if (is_file($partPath)) {
+            @unlink($partPath);
         }
 
         $export->update([
