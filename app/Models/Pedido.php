@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,6 +13,7 @@ class Pedido extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'user_id',
         'descricao',
         'cliente_nome',
         'produto',
@@ -25,7 +26,10 @@ class Pedido extends Model
     protected static function booted(): void
     {
         static::addGlobalScope('user', function (Builder $builder) {
-            $builder->where('user_id', Auth::id());
+            $user = Auth::user() ?? null;
+            if ($user) {
+                $builder->where('user_id', $user->id);
+            }
         });
     }
 

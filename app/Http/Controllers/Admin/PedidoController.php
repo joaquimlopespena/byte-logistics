@@ -30,8 +30,9 @@ class PedidoController extends Controller
     public function store(StorePedidoRequest $request)
     {
         $validated = $request->validated();
-        DB::transaction(function () use ($validated) {
+        DB::transaction(function () use ($validated, $request) {
             Pedido::create([
+                'user_id' => $request->user()->id,
                 'descricao' => $validated['descricao'],
                 'cliente_nome' => $validated['nome_cliente'],
                 'produto' => $validated['produto'],

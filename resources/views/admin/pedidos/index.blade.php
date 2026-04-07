@@ -20,8 +20,8 @@
         <div class="card-header">
             <h3 class="card-title">Lista de Pedidos</h3>
             <div class="card-tools">
-                <a href="#" class="btn btn-success btn-sm">
-                    <i class="fas fa-file-csv"></i> Download CSV
+                <a href="{{ route('admin.pedidos.export') }}" class="btn btn-success btn-sm">
+                    <i class="fas fa-file-csv"></i> Exportar CSV
                 </a>
                 <a href="{{ route('admin.pedidos.create') }}" class="btn btn-primary btn-sm">
                     <i class="fas fa-plus"></i> Novo Pedido

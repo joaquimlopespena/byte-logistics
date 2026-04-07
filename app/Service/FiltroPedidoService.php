@@ -19,10 +19,20 @@ class FiltroPedidoService
     /**
      * @param  array<string, mixed>  $data
      */
-    public function filtrarPedidos(array $data): Builder
+    public function filtrarPedidos(array $data, ?int $userId = null): Builder
     {
-        $query = Pedido::query();
+        return $this->aplicarFiltros(Pedido::query(), $data, $userId)
+            ->orderBy('created_at', 'desc')
+            ->with('transportadora:id,nome');
+    }
 
+    /**
+     * Aplica os mesmos filtros da listagem sobre um builder (ex.: exportação em fila sem global scope).
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function aplicarFiltros(Builder $query, array $data, ?int $userId = null): Builder
+    {
         $search = $data['search'] ?? null;
         if (is_string($search) && $search !== '') {
             $query->where(function (Builder $q) use ($search): void {
@@ -49,9 +59,11 @@ class FiltroPedidoService
             $query->where('created_at', '<=', $dataFim->copy()->endOfDay());
         }
 
-        return $query
-            ->orderBy('created_at', 'desc')
-            ->with('transportadora:id,nome');
+        if ($userId !== null) {
+            $query->where('user_id', $userId);
+        }
+
+        return $query;
     }
 
     private function parseDateParam(mixed $value): ?Carbon
