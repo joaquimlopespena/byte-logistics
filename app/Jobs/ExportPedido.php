@@ -36,12 +36,16 @@ class ExportPedido implements ShouldQueue
 
     public function handle(FiltroPedidoService $filtroPedidoService): void
     {
-        $export = PedidoExport::find($this->pedidoExportId);
-        if ($export === null || (int) $export->user_id !== $this->userId) {
-            throw new \RuntimeException('Exportação inválida ou usuário não autorizado.');
-        }
+        try {
+            $export = PedidoExport::find($this->pedidoExportId);
+            if ($export === null || (int) $export->user_id !== $this->userId) {
+                throw new \RuntimeException('Exportação inválida ou usuário não autorizado.');
+            }
 
-        $this->exportarPedidos($export, $filtroPedidoService);
+            $this->exportarPedidos($export, $filtroPedidoService);
+        } catch (\Exception $th) {
+            $this->failed($th);
+        }
     }
 
     private function exportarPedidos(PedidoExport $export, FiltroPedidoService $filtroPedidoService): void
@@ -51,73 +55,43 @@ class ExportPedido implements ShouldQueue
 
         $pedidos = (new FiltroPedidoService)->filtrarPedidos($data, $export->user_id)->limit(1)->get();
 
-        dd($pedidos);
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet(); // ID	Cliente	Produto	Transportadora	Qtd	Preço		Data
+
+        $sheet->setCellValue('A1', 'ID');
+        $sheet->setCellValue('C1', 'Cliente');
+        $sheet->setCellValue('D1', 'Produto');
+        $sheet->setCellValue('E1', 'Transportadora');
+        $sheet->setCellValue('F1', 'Qtd');
+        $sheet->setCellValue('G1', 'Preço');
+        $sheet->setCellValue('H1', 'Total');
+        $sheet->setCellValue('I1', 'Data');
 
         $export->update([
             'status' => PedidoExport::STATUS_PROCESSING,
             'error_message' => null,
         ]);
 
-        $relativePath = 'exports/pedidos-'.$export->id.'.csv';
+        $rowIndex = 2;
+        foreach ($pedidos as $row) {
+            $sheet->setCellValue('A'.$rowIndex, $row->id);
+            $sheet->setCellValue('C'.$rowIndex, $row->cliente_nome);
+            $sheet->setCellValue('D'.$rowIndex, $row->produto);
+            $sheet->setCellValue('E'.$rowIndex, $row?->transportadora?->nome ?? '');
+            $sheet->setCellValue('F'.$rowIndex, $row->quantidade);
+            $sheet->setCellValue('G'.$rowIndex, (float) $row?->preco ?? 0);
+            $sheet->setCellValue('H'.$rowIndex, (float) $row?->total ?? 0);
+            $sheet->setCellValue('I'.$rowIndex, $row->created_at?->format('Y-m-d H:i:s') ?? '');
+            $rowIndex++;
+        }
+
+        $relativePath = 'exports/pedidos-'.$export->id.'.xlsx';
         $disk = Storage::disk($export->disk);
         $disk->makeDirectory('exports');
 
         $fullPath = $disk->path($relativePath);
-        $handle = fopen($fullPath, 'w');
 
-        if ($handle === false) {
-            throw new \RuntimeException('Não foi possível criar o arquivo CSV.');
-        }
-
-        fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
-        fputcsv($handle, [
-            'id',
-            'descricao',
-            'cliente_nome',
-            'produto',
-            'preco',
-            'quantidade',
-            'total',
-            'transportadora',
-            'criado_em',
-        ], ';');
-
-        //$filters = $export->filters ?? $this->data;
-
-        $query = Pedido::withoutGlobalScope('user')
-            ->where('pedidos.user_id', $export->user_id);
-
-        $filtroPedidoService->aplicarFiltros($query, $filters);
-
-        $query->leftJoin('transportadoras', 'pedidos.transportadora_id', '=', 'transportadoras.id')
-            ->select([
-                'pedidos.id',
-                'pedidos.descricao',
-                'pedidos.cliente_nome',
-                'pedidos.produto',
-                'pedidos.preco',
-                'pedidos.quantidade',
-                'pedidos.total',
-                'pedidos.created_at',
-                'transportadoras.nome as transportadora_nome',
-            ])
-            ->orderBy('pedidos.id');
-
-        foreach ($query->cursor() as $row) {
-            fputcsv($handle, [
-                $row->id,
-                $row->descricao,
-                $row->cliente_nome,
-                $row->produto,
-                number_format((float) $row->preco, 2, ',', ''),
-                $row->quantidade,
-                number_format((float) $row->total, 2, ',', ''),
-                $row->transportadora_nome ?? '',
-                $row->created_at?->format('Y-m-d H:i:s') ?? '',
-            ], ';');
-        }
-
-        fclose($handle);
+        (new Xlsx($spreadsheet))->save($fullPath);
 
         $export->update([
             'status' => PedidoExport::STATUS_COMPLETED,

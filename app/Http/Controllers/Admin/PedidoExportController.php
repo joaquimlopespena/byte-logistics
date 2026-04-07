@@ -36,7 +36,7 @@ class PedidoExportController extends Controller
         $export = PedidoExport::create([
             'user_id' => Auth::user()->id,
             'status' => PedidoExport::STATUS_PENDING,
-            'filters' => !empty($validated) ? $validated : null,
+            'filters' => ! empty($validated) ? $validated : null,
             'disk' => 'local',
         ]);
 
@@ -44,11 +44,6 @@ class PedidoExportController extends Controller
             Auth::user()->id,
             $export->id
         );
-
-
-
-        dd($export);
-
 
         return redirect()
             ->route('admin.pedidos.export')
@@ -73,10 +68,13 @@ class PedidoExportController extends Controller
                 ->with('error', 'Arquivo não encontrado. Gere uma nova exportação.');
         }
 
-        $name = 'pedidos-'.$pedidoExport->id.'-'.now()->format('Y-m-d').'.csv';
+        $name = 'pedidos-'.$pedidoExport->id.'-'.now()->format('Y-m-d').'.xlsx';
+        $disk = Storage::disk($pedidoExport->disk);
 
-        return Storage::disk($pedidoExport->disk)->download($pedidoExport->path, $name, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-        ]);
+        return response()->download(
+            $disk->path($pedidoExport->path),
+            $name,
+            ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+        )->deleteFileAfterSend(false);
     }
 }
