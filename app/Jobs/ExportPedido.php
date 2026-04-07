@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Events\ExportarPedidosEvent;
 use App\Models\Pedido;
 use App\Models\PedidoExport;
 use App\Service\FiltroPedidoService;
@@ -51,10 +52,19 @@ class ExportPedido implements ShouldQueue
             throw new RuntimeException('Exportação inválida ou usuário não autorizado.');
         }
 
-        $this->exportarPedidos($export, $filtroPedidoService);
+        $relativePath = $this->exportarPedidos($export, $filtroPedidoService);
+
+        $export->refresh();
+
+        event(new ExportarPedidosEvent(
+            $this->userId,
+            $export->id,
+            $relativePath,
+            $export->completed_at?->timezone(config('app.timezone'))->format('d/m/Y H:i') ?? now()->format('d/m/Y H:i'),
+        ));
     }
 
-    private function exportarPedidos(PedidoExport $export, FiltroPedidoService $filtroPedidoService): void
+    private function exportarPedidos(PedidoExport $export, FiltroPedidoService $filtroPedidoService): string
     {
         $data = is_array($export->filters) ? $export->filters : [];
 
@@ -114,6 +124,8 @@ class ExportPedido implements ShouldQueue
             'path' => $relativePath,
             'completed_at' => now(),
         ]);
+
+        return $relativePath;
     }
 
     public function failed(?Throwable $exception): void

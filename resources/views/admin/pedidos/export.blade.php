@@ -61,11 +61,11 @@
                                 <th></th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="js-pedidos-exports-tbody">
                             @forelse ($exports as $ex)
-                                <tr>
+                                <tr data-pedido-export-id="{{ $ex->id }}">
                                     <td>{{ $ex->id }}</td>
-                                    <td>
+                                    <td class="js-export-status">
                                         @if ($ex->status === \App\Models\PedidoExport::STATUS_COMPLETED)
                                             <span class="badge badge-success">Pronto</span>
                                         @elseif ($ex->status === \App\Models\PedidoExport::STATUS_FAILED)
@@ -77,8 +77,8 @@
                                         @endif
                                     </td>
                                     <td class="small">{{ $ex->created_at?->format('d/m/Y H:i') }}</td>
-                                    <td class="small">{{ $ex->completed_at?->format('d/m/Y H:i') ?? '—' }}</td>
-                                    <td class="text-right">
+                                    <td class="small js-export-completed">{{ $ex->completed_at?->format('d/m/Y H:i') ?? '—' }}</td>
+                                    <td class="text-right js-export-actions">
                                         @if ($ex->status === \App\Models\PedidoExport::STATUS_COMPLETED)
                                             <a href="{{ route('admin.pedidos.export.download', $ex) }}" class="btn btn-xs btn-success">
                                                 <i class="fas fa-download"></i> CSV
@@ -106,4 +106,45 @@
 
 @push('js')
     @include('admin.pedidos.include.filtro-data-scripts')
+    @auth
+        <script>
+            $(function () {
+                if (typeof window.Echo === 'undefined') {
+                    alert('Echo não está definido');
+                    return;
+                }
+                var userId = {{ auth()->id() }};
+                window.Echo.private('App.Models.User.' + userId)
+                    .listen('.export.pedidos.completed', function (payload) {
+                        var $row = $('tr[data-pedido-export-id="' + payload.pedido_export_id + '"]');
+                        if ($row.length) {
+                            $row.find('.js-export-status').html(
+                                '<span class="badge badge-success">Pronto</span>'
+                            );
+                            $row.find('.js-export-completed').text(
+                                payload.completed_at_formatted || '—'
+                            );
+                            $row.find('.js-export-actions').html(
+                                '<a href="' + payload.download_url + '" class="btn btn-xs btn-success">' +
+                                '<i class="fas fa-download"></i> CSV</a>'
+                            );
+                            return;
+                        }
+                        var $wrap = $('.container-fluid').first();
+                        if (!$wrap.length) {
+                            return;
+                        }
+                        var $alert = $('<div>', { role: 'alert' })
+                            .addClass('alert alert-success alert-dismissible fade show')
+                            .html(
+                                'Exportação <strong>#' + payload.pedido_export_id + '</strong> concluída. ' +
+                                '<a href="' + payload.download_url + '" class="alert-link font-weight-bold">Baixar CSV</a>. ' +
+                                '<button type="button" class="close" data-dismiss="alert" aria-label="Fechar">' +
+                                '<span aria-hidden="true">&times;</span></button>'
+                            );
+                        $wrap.prepend($alert);
+                    });
+            });
+        </script>
+    @endauth
 @endpush

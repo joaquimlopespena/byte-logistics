@@ -5,11 +5,14 @@ use App\Http\Controllers\Admin\PedidoController;
 use App\Http\Controllers\Admin\PedidoExportController;
 use App\Http\Controllers\Admin\TransportadoraController;
 use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
 });
+
+Broadcast::routes(['middleware' => ['web', 'auth']]);
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

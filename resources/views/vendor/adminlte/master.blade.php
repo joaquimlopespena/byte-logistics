@@ -98,6 +98,9 @@
         <link rel="icon" type="image/png" href="{{ asset(config('adminlte.logo_img')) }}">
     @endif
 
+    {{-- Echo/Reverb: com AdminLTE em asset bundling "false", app.js não é incluído; este entry define window.Echo. --}}
+    @vite(['resources/js/echo-entry.js'])
+
 </head>
 
 <body class="@yield('classes_body')" @yield('body_data')>
